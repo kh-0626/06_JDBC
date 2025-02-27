@@ -3,7 +3,6 @@ package example;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
@@ -42,24 +41,27 @@ public class JDBCExample5 {
 		// 부서명 입력 받기
 		System.out.println("=== 부서명 ===");
 		
-		System.out.print("부서명 : ");
-		String dept_title = sc.nextLine();
+		System.out.print("부서명 입력: ");
+		String input = sc.nextLine();
 			
+		// """ """ : 작성된 문자열 형태 그대로 저장
 		
 		/* 3. SQL 작성 */
 		StringBuilder sb = new StringBuilder();
-//		sb.append("SELECT EMP_ID, EMP_NAME, DEPT_TITLE, JOB_NAME ");
-//		sb.append("FROM EMPLOYEE, DEPERTMENT, JOB ");
-//		sb.append("WHERE DEPT_TITLE ");
-//		sb.append("ORDER BY JOB_CODE ASC ");
+		sb.append("SELECT EMP_ID, EMP_NAME, DEPT_TITLE, JOB_NAME ");
+		sb.append("FROM EMPLOYEE E");
+		sb.append("WHERE DEPT_TITLE ");
+		sb.append("ORDER BY JOB_CODE ASC ");
 		
-		sb.append("SELECT EMP_ID, EMP_NAME, DEPT_TITLE, JOB_NAMEY ");
-		sb.append("FROM EMPLOYEE, DEPERTMENT, JOB ");
-		sb.append("WHERE DEPT_TITLE = '");
-		sb.append(dept_title);
-		sb.append("' ORDER BY JOB_CODE ASC ");
 		
-		String sql = sb.toString();
+		String sql = String.format("""
+				SELECT E.EMP_ID, E.EMP_NAME, D.DEPT_TITLE, J.JOB_NAME 
+				FROM EMPLOYEE E
+				JOIN JOB J ON (E.JOB_CODE = J.JOB_CODE)
+				JOIN DEPARTMENT D ON (E.DEPT_CODE = D.DEPT_ID)
+				WHERE DEPT_TITLE = '%s'
+				ORDER BY E.JOB_CODE ASC 
+				""", input);
 		
 		/* 4. sql을 전달하고 결과를 받아올 Statement 객체 생성 */
 		stmt = conn.createStatement();
@@ -81,19 +83,17 @@ public class JDBCExample5 {
 			
 			String empId = rs.getString("EMP_ID");
 			String empName = rs.getString("EMP_NAME");
-			String deptCode = rs.getString("DEPT_CODE");
-			int    salary = rs.getInt("SALARY");
+			String deptTitle = rs.getString("DEPT_TITLE");
+			String jobName = rs.getString("JOB_NAME");
 			
 			System.out.printf(
-					"%s / %s / %s / %d \n",
-					empId,empName,deptCode,salary);
+					"%s / %s / %s / %s \n",
+					empId, empName, deptTitle, jobName);
 		}
 
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		} 
 		/* 7. 사용 완료된 JDBC 객체 자원 반환 */
 		try {
 			// 생성 역순으로 close 하는 것이 좋다!!
